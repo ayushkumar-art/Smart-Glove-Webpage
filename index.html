@@ -1,0 +1,1087 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Smart Assistive Gesture Glove — Patient Monitoring Dashboard</title>
+  <meta name="description" content="Real-time IoT patient monitoring dashboard for the Smart Assistive Gesture Glove. Track patient gestures, alerts, and analytics." />
+
+  <!-- Fonts: Inter -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+
+  <!-- Tailwind CSS Play CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Inter', 'system-ui', 'sans-serif'],
+            mono: ['JetBrains Mono', 'Fira Code', 'monospace'],
+          },
+          colors: {
+            surface: {
+              50: '#f8fafc',
+              100: '#f1f5f9',
+              800: '#1e293b',
+              900: '#0f172a',
+              950: '#060a13',
+            },
+          },
+          animation: {
+            'pulse-slow': 'pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+            'glow-green': 'glowGreen 2.5s ease-in-out infinite alternate',
+            'glow-red': 'glowRed 1s ease-in-out infinite alternate',
+            'flash-alert': 'flashAlert 0.6s ease-in-out infinite',
+            'slide-up': 'slideUp 0.5s cubic-bezier(0.16, 1, 0.3, 1)',
+            'slide-down': 'slideDown 0.4s cubic-bezier(0.16, 1, 0.3, 1)',
+            'fade-in': 'fadeIn 0.6s ease-out',
+            'blink': 'blink 1.5s ease-in-out infinite',
+            'float': 'float 6s ease-in-out infinite',
+            'shimmer': 'shimmer 2s linear infinite',
+            'ripple': 'ripple 1.5s ease-out infinite',
+            'scan-line': 'scanLine 3s linear infinite',
+          },
+          keyframes: {
+            glowGreen: {
+              '0%': { boxShadow: '0 0 20px rgba(16, 185, 129, 0.1), 0 0 60px rgba(16, 185, 129, 0.03), inset 0 0 30px rgba(16, 185, 129, 0.02)' },
+              '100%': { boxShadow: '0 0 40px rgba(16, 185, 129, 0.25), 0 0 100px rgba(16, 185, 129, 0.08), inset 0 0 60px rgba(16, 185, 129, 0.04)' },
+            },
+            glowRed: {
+              '0%': { boxShadow: '0 0 25px rgba(239, 68, 68, 0.15), 0 0 80px rgba(239, 68, 68, 0.05), inset 0 0 30px rgba(239, 68, 68, 0.03)' },
+              '100%': { boxShadow: '0 0 50px rgba(239, 68, 68, 0.4), 0 0 120px rgba(239, 68, 68, 0.12), inset 0 0 60px rgba(239, 68, 68, 0.06)' },
+            },
+            flashAlert: {
+              '0%, 100%': { opacity: '1' },
+              '50%': { opacity: '0.6' },
+            },
+            slideUp: {
+              '0%': { transform: 'translateY(24px)', opacity: '0' },
+              '100%': { transform: 'translateY(0)', opacity: '1' },
+            },
+            slideDown: {
+              '0%': { transform: 'translateY(-12px)', opacity: '0' },
+              '100%': { transform: 'translateY(0)', opacity: '1' },
+            },
+            fadeIn: {
+              '0%': { opacity: '0' },
+              '100%': { opacity: '1' },
+            },
+            blink: {
+              '0%, 100%': { opacity: '1' },
+              '50%': { opacity: '0.25' },
+            },
+            float: {
+              '0%, 100%': { transform: 'translateY(0px)' },
+              '50%': { transform: 'translateY(-12px)' },
+            },
+            shimmer: {
+              '0%': { backgroundPosition: '-200% 0' },
+              '100%': { backgroundPosition: '200% 0' },
+            },
+            ripple: {
+              '0%': { transform: 'scale(1)', opacity: '1' },
+              '100%': { transform: 'scale(2.5)', opacity: '0' },
+            },
+            scanLine: {
+              '0%': { transform: 'translateY(-100%)' },
+              '100%': { transform: 'translateY(100%)' },
+            },
+          },
+        },
+      },
+    }
+  </script>
+
+  <!-- Custom Styles -->
+  <style>
+    ::-webkit-scrollbar { width: 5px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: rgba(100, 116, 139, 0.3); border-radius: 10px; }
+    ::-webkit-scrollbar-thumb:hover { background: rgba(100, 116, 139, 0.5); }
+
+    .glass {
+      background: rgba(15, 23, 42, 0.55);
+      backdrop-filter: blur(24px) saturate(1.4);
+      -webkit-backdrop-filter: blur(24px) saturate(1.4);
+      border: 1px solid rgba(148, 163, 184, 0.07);
+    }
+    .glass-elevated {
+      background: rgba(15, 23, 42, 0.7);
+      backdrop-filter: blur(32px) saturate(1.5);
+      -webkit-backdrop-filter: blur(32px) saturate(1.5);
+      border: 1px solid rgba(148, 163, 184, 0.1);
+      box-shadow: 0 8px 32px rgba(0,0,0,0.3), 0 0 0 1px rgba(148, 163, 184, 0.05);
+    }
+    .glass-subtle {
+      background: rgba(30, 41, 59, 0.35);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border: 1px solid rgba(148, 163, 184, 0.05);
+    }
+
+    .gradient-border-green {
+      position: relative;
+    }
+    .gradient-border-green::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      border-radius: inherit;
+      padding: 1px;
+      background: linear-gradient(145deg, rgba(16, 185, 129, 0.4), rgba(20, 184, 166, 0.15), transparent 60%);
+      -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+      -webkit-mask-composite: xor;
+      mask-composite: exclude;
+      pointer-events: none;
+    }
+    .gradient-border-red::before {
+      background: linear-gradient(145deg, rgba(239, 68, 68, 0.6), rgba(249, 115, 22, 0.25), transparent 60%) !important;
+    }
+
+    /* Animated mesh gradient bg */
+    .mesh-bg {
+      background:
+        radial-gradient(ellipse at 20% 50%, rgba(16, 185, 129, 0.04) 0%, transparent 50%),
+        radial-gradient(ellipse at 80% 20%, rgba(59, 130, 246, 0.03) 0%, transparent 50%),
+        radial-gradient(ellipse at 60% 80%, rgba(139, 92, 246, 0.025) 0%, transparent 50%);
+    }
+
+    /* Noise texture overlay */
+    body::after {
+      content: '';
+      position: fixed;
+      inset: 0;
+      opacity: 0.02;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 512 512' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
+      pointer-events: none;
+      z-index: 100;
+    }
+
+    /* Shimmer effect for loading states */
+    .shimmer-bg {
+      background: linear-gradient(110deg, transparent 25%, rgba(255,255,255,0.03) 37%, transparent 63%);
+      background-size: 200% 100%;
+    }
+
+    /* Status badge pulse ring */
+    .pulse-ring {
+      position: relative;
+    }
+    .pulse-ring::after {
+      content: '';
+      position: absolute;
+      inset: -3px;
+      border-radius: 50%;
+      border: 2px solid currentColor;
+      opacity: 0;
+      animation: ripple 2s ease-out infinite;
+    }
+
+    /* Custom transitions */
+    * {
+      transition-property: background-color, border-color, box-shadow, opacity, transform;
+      transition-duration: 200ms;
+      transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    /* Hero card scan line */
+    .scan-overlay::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(transparent 50%, rgba(16, 185, 129, 0.02) 50%);
+      background-size: 100% 4px;
+      pointer-events: none;
+      border-radius: inherit;
+    }
+  </style>
+
+  <!-- React 18 + ReactDOM via CDN -->
+  <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+  <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+  <!-- Supabase JS v2 CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <!-- Chart.js CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4"></script>
+</head>
+
+<body class="bg-surface-950 text-slate-100 font-sans antialiased min-h-screen overflow-x-hidden mesh-bg">
+  <div id="root"></div>
+
+  <script type="text/babel" data-type="module">
+    // ============================================================
+    //  Smart Assistive Gesture Glove — Patient Monitoring Dashboard
+    //  Real-time IoT via Supabase Postgres Changes
+    // ============================================================
+
+    const { useState, useEffect, useRef, useCallback, useMemo } = React;
+
+    // ─── Supabase Configuration ─────────────────────────────────
+    const SUPABASE_URL  = 'https://qadcocsryblmhhhrmqpk.supabase.co';
+    const SUPABASE_ANON = 'sb_publishable_Exj92daA5gdb1srWLmI9vQ_qJJ4wXz2';
+
+    // Initialize Supabase client with realtime enabled
+    const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON, {
+      realtime: { params: { eventsPerSecond: 10 } },
+    });
+
+    // ─── 5 Alert Gestures as specified ──────────────────────────
+    const ALERT_GESTURES = ['Need Water', 'Need Help', 'Washroom', 'Need Food', 'SOS'];
+
+    // Gesture config: icon (SVG path), label, color scheme
+    const GESTURE_CONFIG = {
+      'Normal': {
+        icon: '✅',
+        svgIcon: (
+          <svg className="w-full h-full" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5}>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+        ),
+        label: 'Patient is Stable',
+        subtitle: 'All vitals nominal · No patient requests detected',
+        color: 'emerald',
+        bgGradient: 'from-emerald-950/70 via-teal-950/40 to-slate-900/95',
+        textGradient: 'from-emerald-400 via-teal-300 to-emerald-200',
+        badgeBg: 'bg-emerald-500/15 border-emerald-500/25 text-emerald-300',
+        dotColor: 'bg-emerald-400',
+        iconBg: 'from-emerald-500/20 to-teal-500/10',
+      },
+      'Need Water': {
+        icon: '💧',
+        svgIcon: (
+          <svg className="w-full h-full" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5}>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M12 2.25c0 0-6.75 8.25-6.75 12.75a6.75 6.75 0 0013.5 0C18.75 10.5 12 2.25 12 2.25z" />
+          </svg>
+        ),
+        label: 'Need Water',
+        subtitle: 'GESTURE DETECTED · Patient is requesting hydration',
+        color: 'blue',
+        bgGradient: 'from-blue-950/80 via-sky-950/50 to-slate-900/95',
+        textGradient: 'from-blue-400 via-sky-300 to-cyan-300',
+        badgeBg: 'bg-blue-500/15 border-blue-500/25 text-blue-300',
+        dotColor: 'bg-blue-400',
+        iconBg: 'from-blue-500/20 to-sky-500/10',
+      },
+      'Need Help': {
+        icon: '🆘',
+        svgIcon: (
+          <svg className="w-full h-full" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5}>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m9-.75a9 9 0 11-18 0 9 9 0 0118 0zm-9 3.75h.008v.008H12v-.008z" />
+          </svg>
+        ),
+        label: 'Need Help',
+        subtitle: 'URGENT · Patient requires immediate caregiver assistance',
+        color: 'orange',
+        bgGradient: 'from-orange-950/80 via-amber-950/50 to-slate-900/95',
+        textGradient: 'from-orange-400 via-amber-300 to-yellow-300',
+        badgeBg: 'bg-orange-500/15 border-orange-500/25 text-orange-300',
+        dotColor: 'bg-orange-400',
+        iconBg: 'from-orange-500/20 to-amber-500/10',
+      },
+      'Washroom': {
+        icon: '🚻',
+        svgIcon: (
+          <svg className="w-full h-full" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5}>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z" />
+          </svg>
+        ),
+        label: 'Washroom',
+        subtitle: 'GESTURE DETECTED · Patient needs washroom assistance',
+        color: 'violet',
+        bgGradient: 'from-violet-950/80 via-purple-950/50 to-slate-900/95',
+        textGradient: 'from-violet-400 via-purple-300 to-fuchsia-300',
+        badgeBg: 'bg-violet-500/15 border-violet-500/25 text-violet-300',
+        dotColor: 'bg-violet-400',
+        iconBg: 'from-violet-500/20 to-purple-500/10',
+      },
+      'Need Food': {
+        icon: '🍽️',
+        svgIcon: (
+          <svg className="w-full h-full" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5}>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M12 8.25v-1.5m0 1.5c-1.355 0-2.697.056-4.024.166C6.845 8.51 6 9.473 6 10.608v2.513m6-4.87c1.355 0 2.697.055 4.024.165C17.155 8.51 18 9.473 18 10.608v2.513M15 8.25v-1.5m-6 1.5v-1.5m12 9.75l-1.5.75a3.354 3.354 0 01-3 0 3.354 3.354 0 00-3 0 3.354 3.354 0 01-3 0 3.354 3.354 0 00-3 0 3.354 3.354 0 01-3 0L3 16.5m15-3.38a48.474 48.474 0 00-6-.37c-2.032 0-4.034.126-6 .37m12 0c.39.049.777.102 1.163.16 1.07.16 1.837 1.094 1.837 2.175v5.17c0 .62-.504 1.124-1.125 1.124H4.125A1.125 1.125 0 013 20.625v-5.17c0-1.08.768-2.014 1.837-2.174A47.78 47.78 0 016 13.12M12 8.25a2.25 2.25 0 01-2.25-2.25V5.25A2.25 2.25 0 0112 3v0a2.25 2.25 0 012.25 2.25V6a2.25 2.25 0 01-2.25 2.25z" />
+          </svg>
+        ),
+        label: 'Need Food',
+        subtitle: 'GESTURE DETECTED · Patient is requesting a meal',
+        color: 'amber',
+        bgGradient: 'from-amber-950/80 via-yellow-950/50 to-slate-900/95',
+        textGradient: 'from-amber-400 via-yellow-300 to-orange-300',
+        badgeBg: 'bg-amber-500/15 border-amber-500/25 text-amber-300',
+        dotColor: 'bg-amber-400',
+        iconBg: 'from-amber-500/20 to-yellow-500/10',
+      },
+      'SOS': {
+        icon: '🚨',
+        svgIcon: (
+          <svg className="w-full h-full" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5}>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M14.857 17.082a23.848 23.848 0 005.454-1.31A8.967 8.967 0 0118 9.75v-.7V9A6 6 0 006 9v.75a8.967 8.967 0 01-2.312 6.022c1.733.64 3.56 1.085 5.455 1.31m5.714 0a24.255 24.255 0 01-5.714 0m5.714 0a3 3 0 11-5.714 0M3.124 7.5A8.969 8.969 0 015.292 3m13.416 0a8.969 8.969 0 012.168 4.5" />
+          </svg>
+        ),
+        label: 'SOS — EMERGENCY',
+        subtitle: 'CRITICAL · Emergency gesture — Respond immediately!',
+        color: 'red',
+        bgGradient: 'from-red-950/80 via-rose-950/50 to-slate-900/95',
+        textGradient: 'from-red-400 via-rose-300 to-pink-300',
+        badgeBg: 'bg-red-500/15 border-red-500/25 text-red-300',
+        dotColor: 'bg-red-400',
+        iconBg: 'from-red-500/25 to-rose-500/10',
+      },
+    };
+
+    // Color lookup for tailwind class fragments
+    const COLOR_MAP = {
+      emerald: { text: 'text-emerald-400', bg: 'bg-emerald-500', bgLight: 'bg-emerald-500/10', border: 'border-emerald-500/20', shadow: 'shadow-emerald-500/30', chart: 'rgba(16, 185, 129, 0.65)', chartBorder: 'rgba(16, 185, 129, 1)' },
+      blue:    { text: 'text-blue-400',    bg: 'bg-blue-500',    bgLight: 'bg-blue-500/10',    border: 'border-blue-500/20',    shadow: 'shadow-blue-500/30',    chart: 'rgba(59, 130, 246, 0.65)',  chartBorder: 'rgba(59, 130, 246, 1)' },
+      orange:  { text: 'text-orange-400',  bg: 'bg-orange-500',  bgLight: 'bg-orange-500/10',  border: 'border-orange-500/20',  shadow: 'shadow-orange-500/30',  chart: 'rgba(249, 115, 22, 0.65)', chartBorder: 'rgba(249, 115, 22, 1)' },
+      violet:  { text: 'text-violet-400',  bg: 'bg-violet-500',  bgLight: 'bg-violet-500/10',  border: 'border-violet-500/20',  shadow: 'shadow-violet-500/30',  chart: 'rgba(139, 92, 246, 0.65)', chartBorder: 'rgba(139, 92, 246, 1)' },
+      amber:   { text: 'text-amber-400',   bg: 'bg-amber-500',   bgLight: 'bg-amber-500/10',   border: 'border-amber-500/20',   shadow: 'shadow-amber-500/30',   chart: 'rgba(245, 158, 11, 0.65)', chartBorder: 'rgba(245, 158, 11, 1)' },
+      red:     { text: 'text-red-400',     bg: 'bg-red-500',     bgLight: 'bg-red-500/10',     border: 'border-red-500/20',     shadow: 'shadow-red-500/30',     chart: 'rgba(239, 68, 68, 0.65)',  chartBorder: 'rgba(239, 68, 68, 1)' },
+    };
+
+    const ALARM_SOUND_URL = 'https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3';
+
+    // ─── Utilities ──────────────────────────────────────────────
+    function formatTime(d) { return d.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: true }); }
+    function formatDate(d) { return d.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' }); }
+    function formatAgo(d) {
+      const s = Math.floor((Date.now() - d) / 1000);
+      if (s < 5) return 'just now';
+      if (s < 60) return `${s}s ago`;
+      if (s < 3600) return `${Math.floor(s / 60)}m ago`;
+      return `${Math.floor(s / 3600)}h ${Math.floor((s % 3600) / 60)}m ago`;
+    }
+
+    // ────────────────────────────────────────────────────────────
+    //  ANIMATED PARTICLES BACKGROUND
+    // ────────────────────────────────────────────────────────────
+    function ParticlesBg() {
+      // Create floating particles via pure CSS
+      const particles = useMemo(() => {
+        return Array.from({ length: 30 }, (_, i) => ({
+          id: i,
+          left: Math.random() * 100,
+          top: Math.random() * 100,
+          size: Math.random() * 3 + 1,
+          delay: Math.random() * 6,
+          duration: Math.random() * 4 + 4,
+          opacity: Math.random() * 0.15 + 0.03,
+        }));
+      }, []);
+
+      return (
+        <div className="fixed inset-0 pointer-events-none overflow-hidden z-0">
+          {particles.map(p => (
+            <div
+              key={p.id}
+              className="absolute rounded-full bg-emerald-400 animate-float"
+              style={{
+                left: `${p.left}%`,
+                top: `${p.top}%`,
+                width: `${p.size}px`,
+                height: `${p.size}px`,
+                opacity: p.opacity,
+                animationDelay: `${p.delay}s`,
+                animationDuration: `${p.duration}s`,
+              }}
+            />
+          ))}
+        </div>
+      );
+    }
+
+    // ────────────────────────────────────────────────────────────
+    //  HEADER
+    // ────────────────────────────────────────────────────────────
+    function Header({ isConnected, currentTime }) {
+      return (
+        <header className="glass-elevated sticky top-0 z-40">
+          <div className="max-w-[1600px] mx-auto px-6 lg:px-8">
+            <div className="flex items-center justify-between h-16">
+
+              {/* Logo + Brand */}
+              <div className="flex items-center gap-4">
+                <div className="relative group">
+                  <div className="w-10 h-10 rounded-xl overflow-hidden ring-1 ring-white/10 group-hover:ring-emerald-500/30 transition-all duration-300">
+                    <img src="assets/logo.png" alt="Smart Glove Logo" className="w-full h-full object-cover" />
+                  </div>
+                  {/* Connection dot overlaid on logo */}
+                  <div className={`absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 rounded-full border-2 border-surface-950 ${isConnected ? 'bg-emerald-400 animate-blink' : 'bg-red-500 animate-pulse'}`} />
+                </div>
+                <div>
+                  <h1 className="text-[15px] font-bold tracking-tight text-white">
+                    Smart Assistive Glove
+                    <span className="hidden sm:inline text-slate-500 font-medium ml-1.5 text-xs">Dashboard</span>
+                  </h1>
+                  <div className="flex items-center gap-2 mt-0.5">
+                    <span className={`inline-flex items-center gap-1.5 text-[11px] font-semibold ${isConnected ? 'text-emerald-400' : 'text-red-400'}`}>
+                      <span className={`w-1.5 h-1.5 rounded-full ${isConnected ? 'bg-emerald-400' : 'bg-red-500'}`} />
+                      {isConnected ? 'Realtime Connected' : 'Connection Offline'}
+                    </span>
+                    <span className="text-slate-700 text-[10px]">|</span>
+                    <span className="text-[11px] text-slate-500">IoT Patient Monitor</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Right: Clock + Device image */}
+              <div className="flex items-center gap-5">
+                <div className="text-right hidden sm:block">
+                  <div className="text-xl font-mono font-bold tracking-[0.15em] text-white tabular-nums">
+                    {formatTime(currentTime)}
+                  </div>
+                  <div className="text-[11px] text-slate-500 mt-0.5 tracking-wide">{formatDate(currentTime)}</div>
+                </div>
+                <div className="hidden md:block w-px h-8 bg-slate-800" />
+                <div className="hidden md:flex items-center gap-2.5 glass-subtle rounded-xl px-3 py-1.5">
+                  <div className="w-7 h-7 rounded-lg overflow-hidden ring-1 ring-white/5">
+                    <img src="assets/glove-device.png" alt="Glove Device" className="w-full h-full object-cover" />
+                  </div>
+                  <div>
+                    <div className="text-[11px] font-semibold text-slate-300">Glove v2.1</div>
+                    <div className="text-[10px] text-emerald-400/80 font-medium">● Online</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </header>
+      );
+    }
+
+    // ────────────────────────────────────────────────────────────
+    //  HERO ALERT CARD — The centerpiece
+    // ────────────────────────────────────────────────────────────
+    function HeroAlertCard({ status, lastChanged }) {
+      const isAlert = ALERT_GESTURES.includes(status);
+      const config = GESTURE_CONFIG[status] || GESTURE_CONFIG['Normal'];
+
+      return (
+        <div className={`relative rounded-2xl overflow-hidden transition-all duration-700 gradient-border-green ${
+          isAlert ? 'animate-glow-red gradient-border-red' : 'animate-glow-green'
+        }`}>
+          {/* Background image layer */}
+          <div
+            className="absolute inset-0 opacity-[0.07]"
+            style={{ backgroundImage: 'url(assets/hero-bg.png)', backgroundSize: 'cover', backgroundPosition: 'center' }}
+          />
+
+          {/* Gradient overlay */}
+          <div className={`absolute inset-0 bg-gradient-to-br ${config.bgGradient}`} />
+
+          {/* Scan line overlay for futuristic feel */}
+          <div className="absolute inset-0 scan-overlay" />
+
+          {/* Alert flash overlay */}
+          {isAlert && (
+            <div className="absolute inset-0 animate-flash-alert">
+              <div className={`absolute inset-0 bg-gradient-to-t from-${config.color}-500/8 to-transparent`} />
+            </div>
+          )}
+
+          {/* Content */}
+          <div className="relative z-10 p-8 md:p-10 lg:p-12">
+            <div className="flex items-start justify-between gap-6">
+              <div className="flex-1">
+                {/* Status badge */}
+                <div className="flex items-center gap-3 mb-5">
+                  <span className={`inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full text-[11px] font-bold tracking-widest uppercase border ${config.badgeBg}`}>
+                    <span className={`w-2 h-2 rounded-full ${config.dotColor} ${isAlert ? 'animate-pulse' : 'animate-blink'}`} />
+                    {isAlert ? '⚡ Active Alert' : '◉ Monitoring'}
+                  </span>
+                  {isAlert && (
+                    <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-bold tracking-wider uppercase bg-red-500/20 border border-red-500/30 text-red-300 animate-flash-alert">
+                      PRIORITY
+                    </span>
+                  )}
+                </div>
+
+                {/* Main status text */}
+                <h2 className="text-4xl sm:text-5xl lg:text-6xl font-black tracking-tight mb-4 leading-[1.1]">
+                  <span className={`bg-gradient-to-r ${config.textGradient} bg-clip-text text-transparent`}>
+                    {config.label}
+                  </span>
+                </h2>
+
+                {/* Subtitle */}
+                <p className="text-sm md:text-base text-slate-400 max-w-xl leading-relaxed">
+                  {config.subtitle}
+                </p>
+
+                {/* Timestamp */}
+                {lastChanged && (
+                  <div className="flex items-center gap-4 mt-6">
+                    <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-800/50 border border-slate-700/30">
+                      <svg className="w-3.5 h-3.5 text-slate-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z" />
+                      </svg>
+                      <span className="text-[11px] font-mono text-slate-400">{formatTime(lastChanged)}</span>
+                    </div>
+                    <span className="text-[11px] text-slate-500 font-medium">{formatAgo(lastChanged)}</span>
+                  </div>
+                )}
+              </div>
+
+              {/* Right side: Large gesture icon + device */}
+              <div className="hidden sm:flex flex-col items-center gap-4">
+                <div className={`relative w-28 h-28 lg:w-36 lg:h-36 rounded-2xl bg-gradient-to-br ${config.iconBg} flex items-center justify-center border border-white/5 ${isAlert ? 'animate-flash-alert' : 'animate-float'}`}>
+                  <span className="text-6xl lg:text-7xl">{config.icon}</span>
+                  {/* Ripple effect */}
+                  {isAlert && (
+                    <div className={`absolute inset-0 rounded-2xl border-2 border-${config.color}-500/30 animate-ripple`} />
+                  )}
+                </div>
+                <div className="w-16 h-16 rounded-xl overflow-hidden ring-1 ring-white/10 opacity-60">
+                  <img src="assets/glove-device.png" alt="Smart Glove" className="w-full h-full object-cover" />
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    // ────────────────────────────────────────────────────────────
+    //  NOTIFICATION CONTROLS
+    // ────────────────────────────────────────────────────────────
+    function NotificationControls({ isMuted, onToggleMute, onTest }) {
+      return (
+        <div className="flex items-center gap-2.5">
+          <button
+            id="btn-test-notification"
+            onClick={onTest}
+            className="glass-subtle hover:bg-slate-700/60 text-slate-300 hover:text-white px-4 py-2 rounded-xl text-xs font-semibold transition-all duration-200 flex items-center gap-2 cursor-pointer active:scale-95 hover:scale-[1.02]"
+          >
+            <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M14.857 17.082a23.848 23.848 0 005.454-1.31A8.967 8.967 0 0118 9.75v-.7V9A6 6 0 006 9v.75a8.967 8.967 0 01-2.312 6.022c1.733.64 3.56 1.085 5.455 1.31m5.714 0a24.255 24.255 0 01-5.714 0m5.714 0a3 3 0 11-5.714 0" />
+            </svg>
+            Test Alert
+          </button>
+          <button
+            id="btn-toggle-mute"
+            onClick={onToggleMute}
+            className={`px-4 py-2 rounded-xl text-xs font-semibold transition-all duration-200 flex items-center gap-2 cursor-pointer active:scale-95 hover:scale-[1.02] ${
+              isMuted
+                ? 'bg-red-500/15 text-red-300 border border-red-500/25 hover:bg-red-500/25'
+                : 'bg-emerald-500/15 text-emerald-300 border border-emerald-500/25 hover:bg-emerald-500/25'
+            }`}
+          >
+            {isMuted ? (
+              <><svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z M17 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2" /></svg> Muted</>
+            ) : (
+              <><svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z" /></svg> Sound On</>
+            )}
+          </button>
+        </div>
+      );
+    }
+
+    // ────────────────────────────────────────────────────────────
+    //  STATS GRID
+    // ────────────────────────────────────────────────────────────
+    function StatsGrid({ history, startTime }) {
+      const [now, setNow] = useState(Date.now());
+      useEffect(() => {
+        const t = setInterval(() => setNow(Date.now()), 30000);
+        return () => clearInterval(t);
+      }, []);
+
+      const totalAlerts = history.filter(h => h.status !== 'Normal').length;
+      const diff = Math.floor((now - startTime) / 1000);
+      const runtime = `${Math.floor(diff / 3600)}h ${Math.floor((diff % 3600) / 60)}m`;
+
+      const gestureCounts = {};
+      history.forEach(h => { if (h.status !== 'Normal') gestureCounts[h.status] = (gestureCounts[h.status] || 0) + 1; });
+      const topGesture = Object.keys(gestureCounts).length > 0
+        ? Object.entries(gestureCounts).sort((a, b) => b[1] - a[1])[0][0]
+        : '—';
+
+      const stats = [
+        { label: 'Total Alerts', value: totalAlerts, color: 'orange', icon: <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}><path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z" /></svg> },
+        { label: 'Active Runtime', value: runtime, color: 'blue', icon: <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}><path strokeLinecap="round" strokeLinejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z" /></svg> },
+        { label: 'Most Frequent', value: topGesture, color: 'violet', icon: <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}><path strokeLinecap="round" strokeLinejoin="round" d="M3 13.125C3 12.504 3.504 12 4.125 12h2.25c.621 0 1.125.504 1.125 1.125v6.75C7.5 20.496 6.996 21 6.375 21h-2.25A1.125 1.125 0 013 19.875v-6.75zM9.75 8.625c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125v11.25c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 01-1.125-1.125V8.625zM16.5 4.125c0-.621.504-1.125 1.125-1.125h2.25C20.496 3 21 3.504 21 4.125v15.75c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 01-1.125-1.125V4.125z" /></svg> },
+        { label: 'Total Events', value: history.length, color: 'emerald', icon: <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}><path strokeLinecap="round" strokeLinejoin="round" d="M3.75 12h16.5m-16.5 3.75h16.5M3.75 19.5h16.5M5.625 4.5h12.75a1.875 1.875 0 010 3.75H5.625a1.875 1.875 0 010-3.75z" /></svg> },
+      ];
+
+      return (
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+          {stats.map((s, i) => {
+            const c = COLOR_MAP[s.color];
+            return (
+              <div key={i} className="glass rounded-xl p-5 gradient-border-green hover:scale-[1.03] transition-transform duration-300 group cursor-default">
+                <div className="flex items-center justify-between mb-3">
+                  <span className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider">{s.label}</span>
+                  <div className={`p-2 rounded-lg ${c.bgLight} ${c.text} group-hover:scale-110 transition-transform`}>
+                    {s.icon}
+                  </div>
+                </div>
+                <div className={`text-2xl lg:text-3xl font-bold ${c.text} animate-slide-up`} key={s.value}>
+                  {s.value}
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      );
+    }
+
+    // ────────────────────────────────────────────────────────────
+    //  GESTURE BAR CHART (Chart.js)
+    // ────────────────────────────────────────────────────────────
+    function GestureChart({ history }) {
+      const canvasRef = useRef(null);
+      const chartRef = useRef(null);
+
+      useEffect(() => {
+        if (!canvasRef.current) return;
+
+        const counts = {};
+        ALERT_GESTURES.forEach(g => counts[g] = 0);
+        history.forEach(h => { if (ALERT_GESTURES.includes(h.status)) counts[h.status]++; });
+
+        const gestureColors = ALERT_GESTURES.map(g => {
+          const c = GESTURE_CONFIG[g]?.color || 'emerald';
+          return COLOR_MAP[c] || COLOR_MAP.emerald;
+        });
+
+        if (chartRef.current) {
+          chartRef.current.data.datasets[0].data = Object.values(counts);
+          chartRef.current.update('none');
+          return;
+        }
+
+        chartRef.current = new Chart(canvasRef.current.getContext('2d'), {
+          type: 'bar',
+          data: {
+            labels: ALERT_GESTURES,
+            datasets: [{
+              label: 'Count',
+              data: Object.values(counts),
+              backgroundColor: gestureColors.map(c => c.chart),
+              borderColor: gestureColors.map(c => c.chartBorder),
+              borderWidth: 1.5,
+              borderRadius: 10,
+              borderSkipped: false,
+              barThickness: 32,
+            }],
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+              legend: { display: false },
+              tooltip: {
+                backgroundColor: 'rgba(15, 23, 42, 0.95)',
+                borderColor: 'rgba(100, 116, 139, 0.2)',
+                borderWidth: 1,
+                titleFont: { family: 'Inter', weight: '600' },
+                bodyFont: { family: 'Inter' },
+                padding: 14,
+                cornerRadius: 10,
+                displayColors: false,
+              },
+            },
+            scales: {
+              x: {
+                grid: { display: false },
+                ticks: { color: 'rgba(148, 163, 184, 0.5)', font: { family: 'Inter', size: 11, weight: '500' } },
+                border: { display: false },
+              },
+              y: {
+                beginAtZero: true,
+                grid: { color: 'rgba(148, 163, 184, 0.05)', drawBorder: false },
+                ticks: { color: 'rgba(148, 163, 184, 0.4)', font: { family: 'Inter', size: 11 }, stepSize: 1 },
+                border: { display: false },
+              },
+            },
+          },
+        });
+
+        return () => { if (chartRef.current) { chartRef.current.destroy(); chartRef.current = null; } };
+      }, [history]);
+
+      return (
+        <div className="glass rounded-xl gradient-border-green overflow-hidden">
+          <div className="p-5 pb-4 border-b border-slate-800/30">
+            <div className="flex items-center justify-between">
+              <div>
+                <h3 className="text-sm font-bold text-slate-200">Gesture Distribution</h3>
+                <p className="text-[11px] text-slate-500 mt-0.5">Frequency of each patient gesture today</p>
+              </div>
+              <div className="p-2 rounded-lg bg-blue-500/10 text-blue-400">
+                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M3 13.125C3 12.504 3.504 12 4.125 12h2.25c.621 0 1.125.504 1.125 1.125v6.75C7.5 20.496 6.996 21 6.375 21h-2.25A1.125 1.125 0 013 19.875v-6.75zM9.75 8.625c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125v11.25c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 01-1.125-1.125V8.625zM16.5 4.125c0-.621.504-1.125 1.125-1.125h2.25C20.496 3 21 3.504 21 4.125v15.75c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 01-1.125-1.125V4.125z" /></svg>
+              </div>
+            </div>
+          </div>
+          <div className="p-5 h-56">
+            <canvas ref={canvasRef} />
+          </div>
+        </div>
+      );
+    }
+
+    // ────────────────────────────────────────────────────────────
+    //  GESTURE HISTORY TIMELINE
+    // ────────────────────────────────────────────────────────────
+    function GestureHistory({ history }) {
+      const containerRef = useRef(null);
+      useEffect(() => { if (containerRef.current) containerRef.current.scrollTop = 0; }, [history.length]);
+
+      const reversed = [...history].reverse();
+
+      return (
+        <div className="glass rounded-xl gradient-border-green flex flex-col h-full overflow-hidden">
+          <div className="p-5 border-b border-slate-800/30 flex items-center justify-between flex-shrink-0">
+            <div>
+              <h3 className="text-sm font-bold text-slate-200">Gesture History</h3>
+              <p className="text-[11px] text-slate-500 mt-0.5">{history.length} events recorded this session</p>
+            </div>
+            <div className="flex items-center gap-2">
+              <span className="px-2.5 py-1 rounded-full bg-slate-800/50 border border-slate-700/30 text-[10px] font-bold text-slate-400 tracking-wider">LIVE</span>
+            </div>
+          </div>
+
+          <div ref={containerRef} className="flex-1 overflow-y-auto px-4 py-3 space-y-1" style={{ maxHeight: '520px' }}>
+            {reversed.length === 0 ? (
+              <div className="flex flex-col items-center justify-center h-full text-slate-600 py-16">
+                <svg className="w-12 h-12 mb-4 opacity-30" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                <p className="text-sm font-medium">Waiting for gestures...</p>
+                <p className="text-xs text-slate-700 mt-1">Events will appear here in real-time</p>
+              </div>
+            ) : (
+              reversed.map((entry, i) => {
+                const cfg = GESTURE_CONFIG[entry.status] || GESTURE_CONFIG['Normal'];
+                const clr = COLOR_MAP[cfg.color] || COLOR_MAP.emerald;
+                const isAlert = entry.status !== 'Normal';
+
+                return (
+                  <div
+                    key={entry.id}
+                    className={`flex items-center gap-3.5 p-3 rounded-xl transition-all duration-300 hover:bg-slate-800/30 group ${i === 0 ? 'animate-slide-up bg-slate-800/20' : ''}`}
+                  >
+                    {/* Icon dot */}
+                    <div className={`flex-shrink-0 w-9 h-9 rounded-lg ${clr.bgLight} ${clr.text} flex items-center justify-center border ${clr.border} group-hover:scale-110 transition-transform`}>
+                      <span className="text-base">{cfg.icon}</span>
+                    </div>
+
+                    {/* Content */}
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2">
+                        <span className={`text-sm font-semibold ${clr.text}`}>{entry.status}</span>
+                        <span className={`px-2 py-0.5 rounded-full text-[9px] font-bold tracking-wider uppercase border ${cfg.badgeBg}`}>
+                          {isAlert ? 'ALERT' : 'OK'}
+                        </span>
+                      </div>
+                      <div className="text-[10px] text-slate-500 font-mono mt-0.5">
+                        {formatTime(entry.timestamp)} · {formatAgo(entry.timestamp)}
+                      </div>
+                    </div>
+                  </div>
+                );
+              })
+            )}
+          </div>
+        </div>
+      );
+    }
+
+    // ────────────────────────────────────────────────────────────
+    //  DEVICE STATUS PANEL
+    // ────────────────────────────────────────────────────────────
+    function DevicePanel({ isConnected }) {
+      const rows = [
+        { label: 'Device', value: 'Smart Glove v2.1', highlight: false },
+        { label: 'Protocol', value: 'WebSocket / Realtime', highlight: false },
+        { label: 'Database', value: 'Supabase PostgreSQL', highlight: false },
+        { label: 'Table', value: 'glove_status (id=1)', highlight: true },
+      ];
+
+      return (
+        <div className="glass rounded-xl gradient-border-green overflow-hidden">
+          <div className="p-5 border-b border-slate-800/30 flex items-center gap-3.5">
+            <div className="w-12 h-12 rounded-xl overflow-hidden ring-1 ring-white/10">
+              <img src="assets/glove-device.png" alt="Smart Glove" className="w-full h-full object-cover" />
+            </div>
+            <div>
+              <h3 className="text-sm font-bold text-slate-200">Device Status</h3>
+              <p className="text-[11px] text-slate-500 mt-0.5">Smart Assistive Gesture Glove</p>
+            </div>
+          </div>
+
+          <div className="p-5 space-y-3.5">
+            {/* Connection bar */}
+            <div className="flex items-center justify-between">
+              <span className="text-xs text-slate-400 font-medium">Connection</span>
+              <span className={`text-xs font-bold flex items-center gap-1.5 ${isConnected ? 'text-emerald-400' : 'text-red-400'}`}>
+                <span className={`w-2 h-2 rounded-full ${isConnected ? 'bg-emerald-400 animate-blink' : 'bg-red-500'}`} />
+                {isConnected ? 'Active' : 'Offline'}
+              </span>
+            </div>
+
+            {rows.map((r, i) => (
+              <div key={i} className="flex items-center justify-between">
+                <span className="text-xs text-slate-500">{r.label}</span>
+                <span className={`text-xs font-medium ${r.highlight ? 'text-teal-400 font-mono' : 'text-slate-300'}`}>{r.value}</span>
+              </div>
+            ))}
+
+            {/* Signal quality bar */}
+            <div className="pt-3 border-t border-slate-800/30">
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-xs text-slate-400 font-medium">Signal Quality</span>
+                <span className={`text-xs font-bold ${isConnected ? 'text-emerald-400' : 'text-red-400'}`}>
+                  {isConnected ? 'Excellent' : 'No Signal'}
+                </span>
+              </div>
+              <div className="w-full h-2 bg-slate-800/80 rounded-full overflow-hidden">
+                <div className={`h-full rounded-full transition-all duration-1000 ${
+                  isConnected
+                    ? 'w-[94%] bg-gradient-to-r from-emerald-500 via-teal-400 to-cyan-400'
+                    : 'w-[8%] bg-red-500'
+                }`} />
+              </div>
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    // ────────────────────────────────────────────────────────────
+    //  5 GESTURE QUICK-VIEW CARDS
+    // ────────────────────────────────────────────────────────────
+    function GestureQuickCards({ currentStatus }) {
+      return (
+        <div className="grid grid-cols-5 gap-3">
+          {ALERT_GESTURES.map(g => {
+            const cfg = GESTURE_CONFIG[g];
+            const clr = COLOR_MAP[cfg.color];
+            const isActive = currentStatus === g;
+
+            return (
+              <div
+                key={g}
+                className={`glass-subtle rounded-xl p-4 text-center transition-all duration-300 cursor-default ${
+                  isActive ? `ring-2 ${clr.border} scale-[1.04] ${clr.bgLight}` : 'hover:scale-[1.02] hover:bg-slate-800/30'
+                }`}
+              >
+                <div className={`text-2xl mb-2 ${isActive ? 'animate-flash-alert' : ''}`}>{cfg.icon}</div>
+                <div className={`text-[11px] font-semibold ${isActive ? clr.text : 'text-slate-400'}`}>{g}</div>
+                {isActive && (
+                  <div className={`mt-2 inline-flex px-2 py-0.5 rounded-full text-[9px] font-bold ${clr.bgLight} ${clr.text} border ${clr.border}`}>
+                    ACTIVE
+                  </div>
+                )}
+              </div>
+            );
+          })}
+        </div>
+      );
+    }
+
+    // ────────────────────────────────────────────────────────────
+    //  MAIN APP
+    // ────────────────────────────────────────────────────────────
+    function App() {
+      const [currentStatus, setCurrentStatus] = useState('Normal');
+      const [isConnected, setIsConnected] = useState(false);
+      const [currentTime, setCurrentTime] = useState(new Date());
+      const [history, setHistory] = useState([]);
+      const [isMuted, setIsMuted] = useState(false);
+      const [lastChanged, setLastChanged] = useState(null);
+      const [startTime] = useState(new Date());
+
+      const audioRef = useRef(null);
+      const prevStatusRef = useRef('Normal');
+      const historyIdRef = useRef(0);
+
+      // Clock
+      useEffect(() => {
+        const t = setInterval(() => setCurrentTime(new Date()), 1000);
+        return () => clearInterval(t);
+      }, []);
+
+      // Audio
+      useEffect(() => {
+        audioRef.current = new Audio(ALARM_SOUND_URL);
+        audioRef.current.volume = 0.7;
+      }, []);
+
+      // Request notification permission
+      useEffect(() => {
+        if ('Notification' in window && Notification.permission === 'default') {
+          Notification.requestPermission();
+        }
+      }, []);
+
+      // Trigger alert: sound + browser push notification
+      const triggerAlert = useCallback((status) => {
+        if (!isMuted && audioRef.current) {
+          audioRef.current.currentTime = 0;
+          audioRef.current.play().catch(() => {});
+        }
+        if ('Notification' in window && Notification.permission === 'granted') {
+          const cfg = GESTURE_CONFIG[status];
+          new Notification(`${cfg?.icon || '🚨'} Smart Glove Alert: ${status}`, {
+            body: cfg?.subtitle || `Patient gesture detected — ${status}`,
+            icon: 'assets/logo.png',
+            tag: 'smartglove-alert',
+            requireInteraction: true,
+          });
+        }
+      }, [isMuted]);
+
+      // Add history entry
+      const addHistoryEntry = useCallback((status) => {
+        historyIdRef.current += 1;
+        setHistory(prev => [...prev, { id: historyIdRef.current, status, timestamp: new Date() }]);
+      }, []);
+
+      // Process status update
+      const handleStatusUpdate = useCallback((newStatus) => {
+        const prev = prevStatusRef.current;
+        setCurrentStatus(newStatus);
+        setLastChanged(new Date());
+        addHistoryEntry(newStatus);
+
+        // Alert when transitioning from Normal to any gesture
+        if (prev === 'Normal' && ALERT_GESTURES.includes(newStatus)) {
+          triggerAlert(newStatus);
+        }
+        prevStatusRef.current = newStatus;
+      }, [addHistoryEntry, triggerAlert]);
+
+      // ──────────────────────────────────────────────────────────
+      //  SUPABASE REALTIME SUBSCRIPTION
+      //  Connects to the 'glove_status' table and listens for
+      //  UPDATE events on the row where id = 1. Each time the
+      //  ESP32/microcontroller writes a new gesture value, this
+      //  callback fires and updates the entire dashboard.
+      // ──────────────────────────────────────────────────────────
+      useEffect(() => {
+        let channel;
+
+        async function init() {
+          try {
+            // Fetch initial status
+            const { data, error } = await supabase
+              .from('glove_status')
+              .select('status')
+              .eq('id', 1)
+              .single();
+
+            if (data && !error) {
+              setCurrentStatus(data.status);
+              prevStatusRef.current = data.status;
+              setLastChanged(new Date());
+              addHistoryEntry(data.status);
+            }
+
+            // Subscribe to realtime postgres_changes
+            channel = supabase
+              .channel('glove-realtime-v2')
+              .on(
+                'postgres_changes',
+                {
+                  event: 'UPDATE',
+                  schema: 'public',
+                  table: 'glove_status',
+                  filter: 'id=eq.1',
+                },
+                (payload) => {
+                  const newStatus = payload.new.status;
+                  console.log('[SmartGlove] Realtime update:', newStatus);
+                  handleStatusUpdate(newStatus);
+                }
+              )
+              .subscribe((status) => {
+                console.log('[SmartGlove] Channel status:', status);
+                setIsConnected(status === 'SUBSCRIBED');
+              });
+          } catch (err) {
+            console.error('[SmartGlove] Init error:', err);
+            setIsConnected(false);
+          }
+        }
+
+        init();
+        return () => { if (channel) supabase.removeChannel(channel); };
+      }, []);
+
+      // Test notification
+      const handleTest = useCallback(() => {
+        triggerAlert('Need Help');
+        handleStatusUpdate('Need Help');
+        setTimeout(() => handleStatusUpdate('Normal'), 3000);
+      }, [triggerAlert, handleStatusUpdate]);
+
+      return (
+        <div className="min-h-screen flex flex-col relative">
+          <ParticlesBg />
+          <Header isConnected={isConnected} currentTime={currentTime} />
+
+          <main className="flex-1 max-w-[1600px] w-full mx-auto px-6 lg:px-8 py-6 space-y-6 relative z-10">
+
+            {/* Controls row */}
+            <div className="flex items-center justify-between animate-fade-in">
+              <h2 className="text-xs font-bold text-slate-500 uppercase tracking-[0.2em]">Current Patient Status</h2>
+              <NotificationControls isMuted={isMuted} onToggleMute={() => setIsMuted(m => !m)} onTest={handleTest} />
+            </div>
+
+            {/* Hero Alert */}
+            <div className="animate-slide-up">
+              <HeroAlertCard status={currentStatus} lastChanged={lastChanged} />
+            </div>
+
+            {/* 5 Gesture Quick Cards */}
+            <div className="animate-slide-up" style={{ animationDelay: '80ms' }}>
+              <GestureQuickCards currentStatus={currentStatus} />
+            </div>
+
+            {/* Stats */}
+            <div className="animate-slide-up" style={{ animationDelay: '160ms' }}>
+              <StatsGrid history={history} startTime={startTime} />
+            </div>
+
+            {/* Bottom: Chart + Device | History */}
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 animate-slide-up" style={{ animationDelay: '240ms' }}>
+              <div className="lg:col-span-5 space-y-6">
+                <GestureChart history={history} />
+                <DevicePanel isConnected={isConnected} />
+              </div>
+              <div className="lg:col-span-7">
+                <GestureHistory history={history} />
+              </div>
+            </div>
+          </main>
+
+          {/* Footer */}
+          <footer className="border-t border-slate-800/30 py-4 relative z-10">
+            <div className="max-w-[1600px] mx-auto px-6 lg:px-8 flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="w-5 h-5 rounded overflow-hidden ring-1 ring-white/5">
+                  <img src="assets/logo.png" alt="Logo" className="w-full h-full object-cover" />
+                </div>
+                <span className="text-[11px] text-slate-600">© 2026 Smart Assistive Gesture Glove · Patient Monitoring System</span>
+              </div>
+              <span className="text-[11px] text-slate-600 flex items-center gap-1.5">
+                Powered by <span className="text-emerald-500 font-semibold">Supabase Realtime</span>
+              </span>
+            </div>
+          </footer>
+        </div>
+      );
+    }
+
+    // Mount
+    const root = ReactDOM.createRoot(document.getElementById('root'));
+    root.render(<App />);
+  </script>
+</body>
+</html>
